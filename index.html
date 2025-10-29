@@ -150,69 +150,64 @@
   .save-btn{background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple));color:#fff;padding:10px 14px;border-radius:10px;border:0;font-weight:800}
   .close-btn{background:transparent;border:1px solid rgba(10,20,40,0.06);padding:8px 12px;border-radius:10px;cursor:pointer}
 
-  /* hide scrollbars visually but keep scrolling functional */
-  .viewport, .todo-list, .add-card {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none;    /* Firefox */
-  }
-  .viewport::-webkit-scrollbar,
-  .todo-list::-webkit-scrollbar,
-  .add-card::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-
-/* -------------------------
-   Mobile / small screens
-   ------------------------- */
-@media (max-width: 980px) {
-  /* Stack columns vertically, reduce paddings */
-  .root {
-    grid-template-columns: 1fr !important;
-    gap: 12px;
-    padding: 12px;
-    overflow-x: hidden; /* prevent the whole page from stretching horizontally */
-    height: auto;
-  }
-
-  /* Make cards flow naturally and fill width */
-  .column { height: auto; }
-  .card { padding: 14px; }
-
-  /* Reduce the per-hour pixel width so timeline is not huge on mobile */
-  :root {
-    --hour-px: 44px;   /* smaller hour width on small screens */
-    --date-col: 96px;  /* reduce date column a bit */
-    --left-w-px: auto;
-    --mid-w-px: 100%;
-    --right-w-px: auto;
-  }
-
-  /* Timeline viewport should be a reasonable height (not taller than viewport) */
-  .viewport {
-    max-height: calc(100vh - 220px); /* keep timeline visible but allow the left/add to show above/below */
-    overflow-x: auto;  /* allow horizontal pan inside timeline */
-    overflow-y: auto;
-  }
-
-  /* Prevent inner content forcing the page width — inner can be wide but only scroll inside .viewport */
-  .inner {
-    min-width: 0;      /* allow inner to shrink inside the viewport container */
-    width: auto;
-  }
-
-  /* Make hour labels smaller to fit */
-  .hour { font-size: 11px; padding: 0 4px; }
-
-  /* Reduce big title sizes */
-  .title { font-size: 24px; }
-  .section-title { font-size: 18px; }
-
-  /* Slightly reduce input padding so forms fit better */
-  input, select, textarea { padding:10px 12px; font-size:13px; }
-
-  /* Ensure background doesn't cause horizontal scroll */
-  body { background-position: center top; }
+/* --- Replace your .root definition with this responsive version --- */
+.viewport {
+  overflow-x: hidden;     /* never show horizontal scroll */
+  overflow-y: auto;
+  width: 100%;
 }
+
+.inner {
+  width: 100%;
+}
+
+.hours, .day-row {
+  /* Let the hour columns shrink to fit the screen width */
+  display: grid;
+  grid-template-columns: var(--date-col) repeat(24, 1fr); /* 24 equal columns */
+  width: 100%;
+}
+
+/* Adjust per-hour appearance so text doesn’t overflow */
+.hour, .hour-cell {
+  min-width: 0;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+/* Make sure grid overlay also fits */
+.grid-overlay {
+  width: 100% !important;
+  background-size: calc(100% / 24) 100%;
+  background-position: var(--date-col) 0;
+}
+
+/* Optional: make smaller hour markers on very small screens */
+@media (max-width: 720px) {
+  .hour { font-size: 10px; }
+}
+
+
+/* ---- Hide all scrollbars everywhere ---- */
+
+/* Hide scrollbars but keep scrolling (for Chrome, Safari, Edge, Opera) */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbars in Firefox */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE & old Edge */
+}
+
+/* Make sure major scrollable containers still scroll invisibly */
+body, html, .root, .viewport, .todo-list, .add-card {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+}
+
+
 
 </style>
 </head>
