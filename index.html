@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Agenda — modern colorful</title>
+<style>
+  :root{
+    --bg-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1740');
+    --bg-overlay: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+    --card-fg: rgba(255,255,255,0.5);
+    --card-border: rgba(255,255,255,0.22);
+    --muted: #5b6b7a;
+    --line: rgba(11,17,32,0.06);
+    --accent-blue: #2563eb;
+    --accent-purple: #7c3aed;
+    --accent-green: #10b981;
+    --accent-yellow: #f59e0b;
+    --accent-red: #ef4444;
+    --radius: 14px;
+    --gap: 18px;
+    --left-w-px: 400px;
+    --mid-w-px: 920px;
+    --right-w-px: 320px;
+    --hour-px: 86px;
+    --date-col: 120px;
+    --title-size: 30px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;color:#0b1220; -webkit-font-smoothing:antialiased}
+  body{
+    background-image: var(--bg-overlay), var(--bg-image);
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+  }
+
+  .root{height:100vh;display:grid;grid-template-columns:var(--left-w-px) var(--mid-w-px) var(--right-w-px);gap:var(--gap);padding:var(--gap);align-items:stretch;min-height:0}
+  .column{display:flex;flex-direction:column;gap:var(--gap);height:100%;min-height:0}
+  .card{background: var(--card-fg);border-radius:var(--radius);padding:18px;box-shadow:0 18px 50px rgba(12,20,40,0.12);border:1px solid var(--card-border);backdrop-filter: blur(8px);min-height:0}
+
+  /* LEFT column now: intro (top), big time card (middle), add (bottom) */
+  .left-col { display:flex; flex-direction:column; gap:var(--gap); height:100%; min-height:0; }
+  .intro-card { flex: 0.4; min-height: 0; display:flex; flex-direction:column; padding:22px; }
+  .time-card { flex: 0.25; min-height: 0; display:flex; flex-direction:column; align-items:center; padding:18px; }
+  .add-card { flex: 1.7; min-height: 0; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:4px; }
+
+  .title{font-weight:800;font-size:var(--title-size);margin:0;color:#071029; text-shadow: 0 2px 6px rgba(0,0,0,0.08)}
+  .subtitle{color:var(--muted);margin:0;font-size:13px;line-height:1.4}
+
+  /* Current time big display */
+  .now-big { font-weight:900; font-size:40px; line-height:1; color:#071029; margin:6px 0; text-align:center; }
+  .now-small { color:var(--muted); font-size:14px; margin-top:6px; text-align:center; }
+
+  .section-title{font-weight:800;font-size:24px;margin-bottom:4px;color:#071029}
+  .hint{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .label{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:4px}
+
+  input,select,textarea{
+    border-radius:12px;padding:12px 14px;font-size:14px;border:1px solid rgba(10,20,40,0.06);
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5));
+    box-shadow: 0 10px 24px rgba(12,20,40,0.06);
+    outline:none;transition:box-shadow .12s,border-color .08s,transform .06s;width:100%;
+  }
+  textarea{min-height:120px;resize:vertical}
+  input:focus,textarea:focus,select:focus{border-color:rgba(37,99,235,0.9);box-shadow:0 18px 50px rgba(37,99,235,0.08);transform:translateY(-1px)}
+
+  .inline{display:flex;gap:12px;align-items:center;width:100%}
+  .actions{display:flex;gap:12px;align-items:center;margin-top:6px}
+  .btn{padding:12px 52px;border-radius:12px;font-weight:800;border:0;cursor:pointer;font-size:14px}
+  .btn-primary{background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple));color:#fff;box-shadow:0 14px 36px rgba(37,99,235,0.14)}
+  .btn-ghost{background:transparent;color:#071029;border:1px solid rgba(10,20,40,0.2)}
+  .divider{height:1px;background:rgba(10,20,40,0.2);border-radius:2px;margin:6px 0 10px 0}
+
+  /* Bigger Priority UI (larger square + larger text) */
+  .prio-label {
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    font-weight:800;
+    color:var(--muted);          /* priority text same color as subtitles */
+    cursor:pointer;
+    user-select:none;
+    font-size:16px;          /* bigger label text */
+    height:100%;
+    margin-top:5px;
+    margin-left:20px;         /* push label 5px downward */
+  }
+  .prio-label .square {
+    width:26px; height:26px; border-radius:6px; display:inline-block; border:2px solid rgba(10,20,40,0.12);
+    background:rgba(255,255,255,0.66); box-shadow: 0 6px 14px rgba(12,20,40,0.04);
+    position:relative;
+  }
+  /* simple checked state: subtle border + checkmark, no colored fill */
+  .prio-input { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  .prio-input:checked + .square { background: rgba(255,255,255,0.66); border-color: rgba(11,17,32,0.18); }
+  .prio-input:checked + .square::after {
+    content: '✓';
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    font-size:14px;
+    color:var(--muted);
+    font-weight:800;
+  }
+
+  /* MIDDLE timeline (unchanged except layout) */
+  .timeline-col{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .viewport{flex:1;min-height:0;overflow:auto;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.78));border:1px solid rgba(10,20,40,0.06);position:relative;touch-action:pan-x pan-y;padding:0;backdrop-filter: blur(6px)}
+  .inner{position:relative;background:transparent;min-width:0}
+  .hours{display:grid;grid-template-columns:var(--date-col) repeat(24,var(--hour-px));align-items:center;height:48px;border-bottom:1px solid rgba(10,20,40,0.04);position:sticky;top:0;z-index:6;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5))}
+  .date-title{padding-left:14px;font-weight:700;color:var(--muted);border-right:1px solid rgba(10,20,40,0.04)}
+  .hour{height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(10,20,40,0.04);color:var(--muted);font-size:12px;padding:0 6px}
+  .days{min-width:0}
+  .day-row{display:grid;grid-template-columns:var(--date-col) repeat(24,var(--hour-px));align-items:center;height:68px;border-bottom:1px solid rgba(10,20,40,0.04);min-width:0}
+  .day-row.alt{background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(255,255,255,0))}
+  .date-cell{padding-left:14px;font-weight:700;color:var(--muted);border-right:1px solid rgba(10,20,40,0.04)}
+  .hour-cell{border-right:1px solid rgba(10,20,40,0.04);height:100%}
+  .event-block{position:absolute;height:48px;border-radius:10px;padding:8px 12px;color:#fff;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 12px 30px rgba(10,20,40,0.12);z-index:7;cursor:pointer; transition: transform .12s, opacity .12s}
+  .event-block:hover{transform:translateY(-4px)}
+  .event-block.completed{background:#9aa6b4 !important;color:#fff;opacity:0.6}
+  .grid-overlay{position:absolute;left:0;top:0;pointer-events:none;z-index:3;background-repeat:repeat-y;background-position:var(--date-col) 0}
+
+  .now-line { position:absolute; width:2px; background:linear-gradient(180deg,#ff4d4d,#ff0000); top:0; z-index:40; box-shadow:0 0 8px rgba(255,0,0,0.25); pointer-events:none; }
+
+  /* RIGHT todo */
+  .todo-card{flex:1;display:flex;flex-direction:column;padding:16px;min-height:0;overflow:hidden}
+  .todo-list{flex:1;overflow:auto;padding:8px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5));border:1px dashed rgba(10,20,40,0.06)}
+  .todo-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px;border-radius:10px;background:transparent;border:1px solid rgba(10,20,40,0.04);margin-bottom:10px;cursor:pointer;transition:transform .08s,background .12s}
+  .todo-item:hover{transform:translateY(-4px);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.6))}
+  .todo-item.completed{opacity:0.6}
+  .todo-left{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .todo-head{display:flex;gap:10px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+  .todo-title{font-weight:800;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .todo-meta{font-size:12px;color:var(--muted)}
+  .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:0; background:transparent; cursor:pointer; transition:background .12s,transform .08s; }
+  .icon-btn:hover{background:rgba(10,20,40,0.04); transform:translateY(-2px)}
+  .icon-btn.delete{color:var(--accent-red)}
+  .icon-btn.done{color:var(--accent-green)}
+
+  /* modal */
+  .modal-backdrop{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(8,12,20,0.45);display:none;align-items:center;justify-content:center;z-index:60}
+  .modal{width:720px;max-width:95%;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5));border-radius:12px;padding:18px;box-shadow:0 22px 60px rgba(10,20,40,0.35)}
+  .footer-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .save-btn{background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple));color:#fff;padding:10px 14px;border-radius:10px;border:0;font-weight:800}
+  .close-btn{background:transparent;border:1px solid rgba(10,20,40,0.06);padding:8px 12px;border-radius:10px;cursor:pointer}
+
+  /* hide scrollbars visually but keep scrolling functional */
+  .viewport, .todo-list, .add-card {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+  .viewport::-webkit-scrollbar,
+  .todo-list::-webkit-scrollbar,
+  .add-card::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  @media (max-width:980px){ .root{grid-template-columns:1fr;grid-auto-rows:auto;padding:12px} :root{--mid-w-px:100%} }
+</style>
+</head>
+<body>
+  <div class="root">
+    <!-- LEFT -->
+    <div class="column left-col">
+      <div class="card intro-card">
+        <div>
+          <div class="title">Welcome</div>
+          <div class="subtitle" style="margin-top:10px">Welcome to zheyu's planner! It is a complete free To-do list, where you can organize your days as much as you want!</div>
+        </div>
+      </div>
+
+      <!-- big time card in the middle -->
+      <div class="card time-card" aria-live="polite">
+        <div id="nowDisplayBig" class="now-big">—:—</div>
+        <div id="nowDisplaySmall" class="now-small">Local time</div>
+      </div>
+
+      <div class="card add-card">
+        <div class="section-title">Create New</div>
+        <div class="hint">Make a new agenda!</div>
+        <div class="divider"></div>
+
+        <div class="field">
+          <label class="label">Name</label>
+          <input id="name" type="text" placeholder="Give a task name..." />
+        </div>
+
+        <div class="field">
+          <label class="label">Description</label>
+          <textarea id="description" placeholder="Optional Descriptions..."></textarea>
+        </div>
+
+        <div class="inline">
+          <div style="flex:1">
+            <label class="label">Duration (mins)</label>
+            <input id="duration" type="number" min="1" placeholder="30" />
+          </div>
+          <div style="width:140px">
+            <label class="label">Type</label>
+            <select id="type"><option value="work">Work</option><option value="personal">Personal</option><option value="other">Other</option></select>
+          </div>
+        </div>
+
+        <div class="inline" style="margin-top:8px">
+          <div style="width:240px">
+            <label class="label">Start time (optional)</label>
+            <input id="startTime" type="datetime-local" />
+          </div>
+          <div style="width:160px;display:flex;align-items:center;justify-content:flex-start">
+            <!-- larger priority label with text before checkbox, moved 5px down -->
+            <label class="prio-label" title="Mark as priority">
+              <span class="prio-text">Priority</span>
+              <input id="priority" class="prio-input" type="checkbox" />
+              <span class="square" aria-hidden="true"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="actions">
+          <button id="addBtn" class="btn btn-primary">Add agenda</button>
+          <button id="clearBtn" class="btn btn-ghost">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE (timeline) -->
+    <div class="column timeline-col">
+      <div class="viewport" id="viewport" tabindex="0" aria-label="Timeline. Scroll horizontally and vertically.">
+        <div class="inner" id="inner">
+          <div class="hours" id="hours" aria-hidden="true">
+            <div class="date-title">Date</div>
+            <!-- hours appended by JS -->
+          </div>
+          <div id="days" class="days"></div>
+          <div id="gridOverlay" class="grid-overlay"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="column right-col">
+      <div class="card todo-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-weight:800;font-size:20px">To-do List</div>
+          <div style="font-size:13px;color:var(--muted)">Tasks to be finished...</div>
+        </div>
+        <div id="todoList" class="todo-list" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <div id="modalTitle" style="font-weight:800;font-size:18px;margin-bottom:8px">Agenda details</div>
+      <div id="modalBody"></div>
+      <div class="footer-actions" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
