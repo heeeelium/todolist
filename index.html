@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Agenda — modern colorful</title>
+<title>T1ming — A Modern Agenda List</title>
 <style>
   :root{
     --bg-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1740');
     --bg-overlay: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
-    --card-fg: rgba(255,255,255,0.5);
+    --card-fg: rgba(255,255,255,0.3);
     --card-border: rgba(255,255,255,0.22);
-    --muted: #5b6b7a;
+    --muted: #292b2c;
     --line: rgba(11,17,32,0.06);
     --accent-blue: #2563eb;
     --accent-purple: #7c3aed;
@@ -44,9 +44,9 @@
 
   /* LEFT column now: intro (top), big time card (middle), add (bottom) */
   .left-col { display:flex; flex-direction:column; gap:var(--gap); height:100%; min-height:0; }
-  .intro-card { flex: 0.4; min-height: 0; display:flex; flex-direction:column; padding:22px; }
+  .intro-card { flex: 0.3; min-height: 0; display:flex; flex-direction:column; padding:22px; }
   .time-card { flex: 0.25; min-height: 0; display:flex; flex-direction:column; align-items:center; padding:18px; }
-  .add-card { flex: 1.7; min-height: 0; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:4px; }
+  .add-card { flex: 1.8; min-height: 0; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:8px; }
 
   .title{font-weight:800;font-size:var(--title-size);margin:0;color:#071029; text-shadow: 0 2px 6px rgba(0,0,0,0.08)}
   .subtitle{color:var(--muted);margin:0;font-size:13px;line-height:1.4}
@@ -62,12 +62,17 @@
 
   input,select,textarea{
     border-radius:12px;padding:12px 14px;font-size:14px;border:1px solid rgba(10,20,40,0.06);
-    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5));
+    background: linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.2));
     box-shadow: 0 10px 24px rgba(12,20,40,0.06);
     outline:none;transition:box-shadow .12s,border-color .08s,transform .06s;width:100%;
   }
   textarea{min-height:120px;resize:vertical}
   input:focus,textarea:focus,select:focus{border-color:rgba(37,99,235,0.9);box-shadow:0 18px 50px rgba(37,99,235,0.08);transform:translateY(-1px)}
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(11,17,32,0.65);
+  }
+
 
   .inline{display:flex;gap:12px;align-items:center;width:100%}
   .actions{display:flex;gap:12px;align-items:center;margin-top:6px}
@@ -110,9 +115,9 @@
 
   /* MIDDLE timeline (unchanged except layout) */
   .timeline-col{display:flex;flex-direction:column;gap:12px;min-height:0}
-  .viewport{flex:1;min-height:0;overflow:auto;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.78));border:1px solid rgba(10,20,40,0.06);position:relative;touch-action:pan-x pan-y;padding:0;backdrop-filter: blur(6px)}
+  .viewport{flex:1;min-height:0;overflow:auto;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3));border:1px solid rgba(10,20,40,0.06);position:relative;touch-action:pan-x pan-y;padding:0;backdrop-filter: blur(6px)}
   .inner{position:relative;background:transparent;min-width:0}
-  .hours{display:grid;grid-template-columns:var(--date-col) repeat(24,var(--hour-px));align-items:center;height:48px;border-bottom:1px solid rgba(10,20,40,0.04);position:sticky;top:0;z-index:6;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5))}
+  .hours{display:grid;grid-template-columns:var(--date-col) repeat(24,var(--hour-px));align-items:center;height:48px;border-bottom:1px solid rgba(10,20,40,0.04);position:sticky;top:0;z-index:6;background:linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3))}
   .date-title{padding-left:14px;font-weight:700;color:var(--muted);border-right:1px solid rgba(10,20,40,0.04)}
   .hour{height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(10,20,40,0.04);color:var(--muted);font-size:12px;padding:0 6px}
   .days{min-width:0}
@@ -127,11 +132,12 @@
 
   .now-line { position:absolute; width:2px; background:linear-gradient(180deg,#ff4d4d,#ff0000); top:0; z-index:40; box-shadow:0 0 8px rgba(255,0,0,0.25); pointer-events:none; }
 
+  
   /* RIGHT todo */
   .todo-card{flex:1;display:flex;flex-direction:column;padding:16px;min-height:0;overflow:hidden}
-  .todo-list{flex:1;overflow:auto;padding:8px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5));border:1px dashed rgba(10,20,40,0.06)}
+  .todo-list{flex:1;overflow:auto;padding:8px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.0), rgba(255,255,255,0.0));border:1px dashed rgba(10,20,40,0.5)}
   .todo-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px;border-radius:10px;background:transparent;border:1px solid rgba(10,20,40,0.04);margin-bottom:10px;cursor:pointer;transition:transform .08s,background .12s}
-  .todo-item:hover{transform:translateY(-4px);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.6))}
+  .todo-item:hover{transform:translateY(-4px);background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5))}
   .todo-item.completed{opacity:0.6}
   .todo-left{display:flex;flex-direction:column;gap:6px;min-width:0}
   .todo-head{display:flex;gap:10px;align-items:center}
@@ -206,7 +212,6 @@ body, html, .root, .viewport, .todo-list, .add-card {
   overflow: auto;
   -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }
-
 
 
 </style>

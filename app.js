@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   /* CONFIG */
   const HOURS = 24;
+  const START_HOUR = 6
   const DAYS_BEFORE = 10;
   const DAYS_AFTER = 30;
   const DATE_COL_PX = 120;
@@ -62,13 +63,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* GRID BUILD functions (same as before) */
   function computeSizes(){ const trackWidth = DATE_COL_PX + HOURS * HOUR_PX; const trackHeight = HEADER_H + DATE_RANGE.length * DAY_H; return { trackWidth, trackHeight } }
+  /* Rebuild the hours header safely (clears previous labels first) */
   function buildHours(trackWidth){
-    while(hoursEl.children.length>1) hoursEl.removeChild(hoursEl.lastChild)
-    hoursEl.style.width = trackWidth + 'px'
-    for(let h=0; h<HOURS; h++){
-      const el = document.createElement('div'); el.className='hour'; el.style.width = HOUR_PX + 'px'; el.textContent = String(h).padStart(2,'0') + ':00'; hoursEl.appendChild(el)
+    // Ensure header contains only one date-title first, then clear prior hour labels.
+    // Simpler & robust: reset inner HTML to a single date-title element, then append hours.
+    hoursEl.innerHTML = ''; // clear everything in header
+
+    // create the date-title element (same structure your HTML expects)
+    const dateTitle = document.createElement('div');
+    dateTitle.className = 'date-title';
+    dateTitle.textContent = 'Date';
+    hoursEl.appendChild(dateTitle);
+
+    // set total width for the header row
+    hoursEl.style.width = trackWidth + 'px';
+
+    // append 24 hour labels starting from START_HOUR
+    for (let i = 0; i < HOURS; i++) {
+      const hourValue = (START_HOUR + i) % 24;
+      const el = document.createElement('div');
+      el.className = 'hour';
+      el.style.width = HOUR_PX + 'px';
+      // display as "06:00", "07:00", ... "05:00"
+      el.textContent = String(hourValue).padStart(2, '0') + ':00';
+      hoursEl.appendChild(el);
     }
   }
+
   function buildDayRows(trackWidth){
     daysEl.innerHTML = ''
     inner.style.width = trackWidth + 'px'
@@ -135,8 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const minsUntilMidnight = Math.round((endOfDay - current) / 60000)
         const thisPart = Math.min(remaining, minsUntilMidnight > 0 ? minsUntilMidnight : remaining)
         if(dayIndex >= 0){
-          const minutesFromMidnight = current.getHours()*60 + current.getMinutes()
-          const leftInside = DATE_COL_PX + (minutesFromMidnight/60)*HOUR_PX
+          // minutes since 6 AM, wrapping after 24h
+          let hourOffset = current.getHours() - START_HOUR;
+          if (hourOffset < 0) hourOffset += 24;
+          const minutesFromStart = hourOffset * 60 + current.getMinutes();
+          const leftInside = DATE_COL_PX + (minutesFromStart / 60) * HOUR_PX;
           const widthPx = Math.max(12, (thisPart/60)*HOUR_PX)
           const el = document.createElement('div'); el.className='event-block'; el.dataset.id = it.id
           el.style.left = Math.round(leftInside) + 'px'
@@ -365,23 +389,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if(nowBig) nowBig.textContent = big
     if(nowSmall) nowSmall.textContent = small
   }
+
+  /* update the red "now" vertical line placement (aligned to START_HOUR) */
   function updateNowLine(){
-    ensureNowLine()
-    const now = new Date()
-    const todayKey = toKey(now)
-    const idx = DATE_RANGE.findIndex(d => d.key === todayKey)
+    ensureNowLine();
+    const now = new Date();
+    const todayKey = toKey(now);
+    const idx = DATE_RANGE.findIndex(d => d.key === todayKey);
     if(idx < 0){
-      nowLine.style.display = 'none'
-      return
+      // today not in range -> hide line
+      nowLine.style.display = 'none';
+      return;
     }
-    const minutes = now.getHours()*60 + now.getMinutes() + (now.getSeconds()/60)
-    const left = DATE_COL_PX + (minutes/60) * HOUR_PX
-    const { trackWidth, trackHeight } = computeSizes()
-    if(left < DATE_COL_PX || left > trackWidth) { nowLine.style.display = 'none'; return }
-    nowLine.style.display = 'block'
-    nowLine.style.left = Math.round(left) + 'px'
-    nowLine.style.top = '0px'
-    nowLine.style.height = trackHeight + 'px'
+
+    // Compute minutes since START_HOUR (wraps correctly)
+    let hourOffset = now.getHours() - START_HOUR;
+    if (hourOffset < 0) hourOffset += 24; // wrap to next-day block
+    const minutesFromStart = hourOffset * 60 + now.getMinutes() + (now.getSeconds() / 60);
+
+    // Compute left position relative to date column
+    const left = DATE_COL_PX + (minutesFromStart / 60) * HOUR_PX;
+
+    // track sizes
+    const { trackWidth, trackHeight } = computeSizes();
+
+    // Hide if outside visible logical track (safety: allow small epsilon)
+    if (left < DATE_COL_PX - 1 || left > (trackWidth + 1)) {
+      nowLine.style.display = 'none';
+      return;
+    }
+
+    // Position & show
+    nowLine.style.display = 'block';
+    nowLine.style.left = Math.round(left) + 'px';
+    nowLine.style.top = '0px';
+    nowLine.style.height = trackHeight + 'px';
   }
 
   /* RENDER ALL */
@@ -417,11 +459,9 @@ document.addEventListener('DOMContentLoaded', () => {
         viewport.scrollLeft = Math.max(0, Math.min(prevScrollLeft, maxLeft));
         viewport.scrollTop  = Math.max(0, Math.min(prevScrollTop,  maxTop));
       } else {
-        // no previous scroll — preserve original "focus today" behavior
         const todayKey = (new Date()).toISOString().slice(0,10);
         const idx = DATE_RANGE.findIndex(d => d.key === todayKey);
-        viewport.scrollTop = idx>=0 ? Math.max(0, HEADER_H + idx*DAY_H - 8) : 0;
-        // keep viewport.scrollLeft unchanged (user hasn't panned horizontally yet)
+        viewport.scrollTop = idx >= 0 ? Math.max(0, HEADER_H + idx * DAY_H - 8) : 0;
       }
 
       // final clamp as safety
@@ -445,3 +485,4 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshAll()
   window.addEventListener('resize', ()=> { HOUR_PX = (function(){ const v = getComputedStyle(document.documentElement).getPropertyValue('--hour-px'); const n = parseInt(v); return isNaN(n) ? 86 : n; })(); requestAnimationFrame(refreshAll) })
 })
+
